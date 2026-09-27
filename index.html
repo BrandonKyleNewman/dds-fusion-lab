@@ -143,6 +143,24 @@
   tr:last-child td{border-bottom:0}
   tr:hover td{background:rgba(183,221,88,.03)}
   .addcard{padding:4px 7px;font-size:10px}
+  .flash-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .flash-controls select{flex:1 1 180px}
+  .flash-progress{font-size:11px;color:var(--muted);margin:0 0 10px}
+  .flash-surface{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    width:100%;min-height:230px;padding:22px;text-align:center;border:1px solid #6d8b4d;
+    border-radius:16px;background:linear-gradient(155deg,#1a2b20,#0b1511);
+    box-shadow:inset 0 0 40px rgba(183,221,88,.04);touch-action:manipulation
+  }
+  .flash-surface:hover{border-color:var(--accent)}
+  .flash-kicker{font-size:10px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
+  .flash-title{font-size:clamp(20px,5vw,30px);font-weight:800;line-height:1.2;overflow-wrap:anywhere}
+  .flash-subtitle{font-size:13px;color:#d4e0ca;line-height:1.45}
+  .flash-fusions{font-size:11px;color:var(--muted);line-height:1.5;max-width:36rem}
+  .flash-actions{display:flex;gap:8px;margin-top:10px}
+  .flash-actions button{flex:1;min-height:44px}
+  .flash-actions button:disabled{opacity:.45;cursor:not-allowed}
+  @media(max-width:540px){.flash-surface{min-height:260px}}
   .scope{
     border-left:3px solid var(--warn);background:rgba(231,207,107,.06);padding:10px 12px;border-radius:5px;
     color:#ded6ad;font-size:10px;line-height:1.5;margin-top:12px
@@ -163,6 +181,7 @@
 
   <nav class="nav">
     <a href="#solver">Hand solver</a>
+    <a href="#flashcards">Flash cards</a>
     <a href="#lookup">Quick fusion</a>
     <a href="#alignments">Type advantage</a>
     <a href="#deck">Starter deck</a>
@@ -189,6 +208,24 @@
           <button id="clearBtn" class="small ghost">Clear</button>
         </div>
         <div id="solverResults" class="results"></div>
+      </section>
+
+      <section class="card" id="flashcards">
+        <h2>Starter Deck Flash Cards</h2>
+        <p class="hint">Study each distinct starter monster. Tap to reveal, then choose Got it or Again. Missed cards return later in the session.</p>
+        <div class="flash-controls">
+          <select id="flashMode" aria-label="Flash card direction">
+            <option value="name">Name → details</option>
+            <option value="details">Details → name</option>
+          </select>
+          <button type="button" id="flashShuffle">Shuffle & restart</button>
+        </div>
+        <p class="flash-progress" id="flashProgress" aria-live="polite"></p>
+        <button type="button" class="flash-surface" id="flashSurface" aria-label="Reveal flash card"></button>
+        <div class="flash-actions">
+          <button type="button" id="flashAgain" disabled>Again</button>
+          <button type="button" class="primary" id="flashGotIt" disabled>Got it</button>
+        </div>
       </section>
 
       <section class="card" id="lookup">
@@ -741,7 +778,73 @@ document.getElementById("fusionB").addEventListener("change",updateQuickFusion);
 document.getElementById("inspectSelect").addEventListener("change",updateInspector);
 document.getElementById("deckSearch").addEventListener("input",renderDeck);
 
+const flashBeats={Fire:"Forest",Forest:"Wind",Wind:"Earth",Earth:"Thunder",Thunder:"Aqua",Aqua:"Fire",Shadow:"Light",Light:"Fiend",Fiend:"Dreams",Dreams:"Shadow"};
+const flashLoses=Object.fromEntries(Object.entries(flashBeats).map(([a,b])=>[b,a]));
+const starterNames=new Set(starterDeck.map(c=>c.name));
+let flashQueue=[],flashPosition=0,flashMastered=0,flashFlipped=false;
+
+function flashRecipes(name){
+  return recipes.filter(r=>(r.a===name && starterNames.has(r.b)) || (r.b===name && starterNames.has(r.a)))
+    .sort((a,b)=>(cardMap.get(b.result)?.atk||0)-(cardMap.get(a.result)?.atk||0))
+    .slice(0,3).map(r=>`${esc(r.a===name?r.b:r.a)} → ${esc(r.result)} (${cardMap.get(r.result)?.atk||"?"} ATK)`);
+}
+
+function renderFlashcard(){
+  const surface=document.getElementById("flashSurface");
+  const progress=document.getElementById("flashProgress");
+  const current=flashQueue[flashPosition];
+  const remaining=flashQueue.length-flashPosition;
+  progress.textContent=`${flashMastered} / ${starterDeck.length} mastered · ${remaining} in queue`;
+  document.getElementById("flashAgain").disabled=!current || !flashFlipped;
+  document.getElementById("flashGotIt").disabled=!current || !flashFlipped;
+  if(!current){
+    surface.disabled=true;
+    surface.innerHTML=`<span class="flash-kicker">Session complete</span><span class="flash-title">All ${starterDeck.length} cards mastered</span><span class="flash-subtitle">Use Shuffle & restart for another round.</span>`;
+    return;
+  }
+  surface.disabled=false;
+  surface.setAttribute("aria-label",flashFlipped?"Flash card answer; tap to see prompt":"Reveal flash card answer");
+  surface.setAttribute("aria-pressed",String(flashFlipped));
+  const c=starterDeck.find(item=>item.name===current);
+  const reverse=document.getElementById("flashMode").value==="details";
+  const details=`${c.atk} ATK / ${c.def} DEF · ${esc(c.type)} · ${esc(c.alignment)}`;
+  if(!flashFlipped){
+    surface.innerHTML=`<span class="flash-kicker">Card ${flashPosition+1} · ${reverse?"Guess the monster":"Recall the details"}</span><span class="flash-title">${reverse?details:esc(c.name)}</span><span class="flash-subtitle">Tap to reveal</span>`;
+    return;
+  }
+  const routes=flashRecipes(c.name);
+  const advantage=flashBeats[c.alignment]?`Beats ${flashBeats[c.alignment]} · loses to ${flashLoses[c.alignment]}`:"No alignment advantage";
+  surface.innerHTML=`<span class="flash-kicker">${reverse?"Monster":"Answer"} · ×${c.qty} in starter deck</span><span class="flash-title">${esc(c.name)}</span><span class="flash-subtitle">${details}<br>${esc(advantage)}</span><span class="flash-fusions">${routes.length?`Starter-pair fusions: ${routes.join(" · ")}`:"No starter-pair recipe in this edition"}</span>`;
+}
+
+function resetFlashcards(shuffle=false){
+  flashQueue=starterDeck.map(c=>c.name);
+  if(shuffle){
+    for(let i=flashQueue.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [flashQueue[i],flashQueue[j]]=[flashQueue[j],flashQueue[i]];
+    }
+  }
+  flashPosition=0;flashMastered=0;flashFlipped=false;renderFlashcard();
+}
+
+document.getElementById("flashSurface").addEventListener("click",()=>{
+  if(flashPosition>=flashQueue.length)return;
+  flashFlipped=!flashFlipped;renderFlashcard();
+});
+document.getElementById("flashAgain").addEventListener("click",()=>{
+  if(!flashFlipped || flashPosition>=flashQueue.length)return;
+  flashQueue.push(flashQueue[flashPosition++]);flashFlipped=false;renderFlashcard();
+});
+document.getElementById("flashGotIt").addEventListener("click",()=>{
+  if(!flashFlipped || flashPosition>=flashQueue.length)return;
+  flashPosition++;flashMastered++;flashFlipped=false;renderFlashcard();
+});
+document.getElementById("flashMode").addEventListener("change",()=>{flashFlipped=false;renderFlashcard()});
+document.getElementById("flashShuffle").addEventListener("click",()=>resetFlashcards(true));
+
 populate();
+resetFlashcards();
 </script>
 </body>
 </html>
