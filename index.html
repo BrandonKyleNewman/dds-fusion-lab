@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0f1c18" />
+<title>DDS Fusion Lab — Starter Deck Edition</title>
+<style>
+  :root{
+    --bg:#0b1210; --panel:#111c18; --panel2:#16241f; --ink:#edf7d4; --muted:#a7b99e;
+    --line:#2d4237; --accent:#b7dd58; --accent2:#77b86a; --warn:#e7cf6b; --danger:#e4876a;
+    --shadow:0 14px 40px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; min-height:100vh; color:var(--ink); background:
+      radial-gradient(circle at 15% -10%, rgba(183,221,88,.14), transparent 30rem),
+      linear-gradient(180deg,#08100d,#0b1210 28rem);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+  button,input,select{font:inherit}
+  a{color:var(--accent)}
+  .wrap{max-width:980px;margin:0 auto;padding:20px 14px 60px}
+  header{
+    border:1px solid var(--line); background:rgba(17,28,24,.92); box-shadow:var(--shadow);
+    border-radius:18px; padding:20px; margin-bottom:14px; position:relative; overflow:hidden;
+  }
+  header:after{
+    content:""; position:absolute; width:180px;height:180px;border:1px solid rgba(183,221,88,.16);
+    border-radius:50%; right:-60px;top:-92px; box-shadow:0 0 0 22px rgba(183,221,88,.025),0 0 0 44px rgba(183,221,88,.02);
+  }
+  h1{font-size:clamp(25px,6vw,42px);line-height:1;margin:0 0 8px;letter-spacing:-.055em}
+  .eyebrow{color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px}
+  .sub{color:var(--muted);line-height:1.45;max-width:760px;margin:0;font-size:13px}
+  .nav{display:flex;gap:8px;overflow:auto;padding:2px 0 12px;margin-bottom:2px;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{
+    white-space:nowrap;text-decoration:none;color:var(--ink);border:1px solid var(--line);
+    background:var(--panel);padding:9px 12px;border-radius:999px;font-size:12px
+  }
+  .grid{display:grid;grid-template-columns:1.35fr .65fr;gap:14px}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+  .card{
+    border:1px solid var(--line); background:rgba(17,28,24,.94); border-radius:16px; padding:15px;
+    box-shadow:0 8px 30px rgba(0,0,0,.18); margin-bottom:14px
+  }
+  h2{font-size:16px;margin:0 0 5px;letter-spacing:-.02em}
+  .hint{font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 13px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  input,select{
+    min-width:0; background:#09110e;color:var(--ink);border:1px solid var(--line);border-radius:10px;
+    padding:11px 12px; outline:none
+  }
+  input:focus,select:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(119,184,106,.13)}
+  .grow{flex:1 1 230px}
+  button{
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2);color:var(--ink);
+    cursor:pointer
+  }
+  button:hover{border-color:#4e6b5a}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#14200f;font-weight:800}
+  button.ghost{background:transparent}
+  button.small{padding:7px 9px;font-size:11px}
+
+  .autocomplete-wrap{position:relative;min-width:0}
+  .autocomplete-wrap input{width:100%;padding-right:42px}
+  .autocomplete-toggle{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:30px;height:30px;padding:0;border:0;background:transparent;
+    color:var(--muted);font-size:18px;z-index:31
+  }
+  .autocomplete-toggle:hover{color:var(--ink);border:0}
+  .autocomplete-list{
+    position:absolute;z-index:30;left:0;right:0;top:calc(100% + 5px);
+    max-height:280px;overflow:auto;background:#09110e;border:1px solid #3b5545;
+    border-radius:12px;box-shadow:0 18px 45px rgba(0,0,0,.45);padding:5px
+  }
+  .autocomplete-list[hidden]{display:none}
+  .autocomplete-item{
+    display:flex;justify-content:space-between;gap:10px;align-items:center;
+    width:100%;text-align:left;background:transparent;border:0;border-radius:8px;
+    padding:9px 10px;color:var(--ink);cursor:pointer
+  }
+  .autocomplete-item:hover,.autocomplete-item.active{background:#1a2b23}
+  .autocomplete-item .meta{color:var(--muted);font-size:9px;white-space:nowrap}
+  .autocomplete-item mark{background:transparent;color:var(--accent);font-weight:800}
+  .mobile-card-picker-button{display:none;width:100%;text-align:left;color:var(--muted);min-height:45px}
+  .mobile-picker[hidden]{display:none}
+  .mobile-picker{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);display:flex;align-items:flex-start;justify-content:center;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  .mobile-picker-panel{display:flex;flex-direction:column;width:min(100%,520px);height:100%;min-height:0;background:var(--panel);padding:14px;gap:10px}
+  .mobile-picker-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .mobile-picker-head h2{margin:0}
+  .mobile-picker-search{width:100%;font-size:16px}
+  .mobile-picker-results{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--line);border-radius:12px;padding:5px}
+  .mobile-picker-results .autocomplete-item{min-height:44px}
+  @media(max-width:780px){
+    .autocomplete-wrap{flex-basis:100%}
+    .autocomplete-wrap input,.autocomplete-toggle,.autocomplete-list,#addBtn{display:none}
+    .mobile-card-picker-button{display:block}
+  }
+
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
+  .chip{
+    display:inline-flex;align-items:center;gap:7px;background:#19271f;border:1px solid #344b3d;border-radius:999px;
+    padding:7px 9px 7px 11px;font-size:11px
+  }
+  .chip button{padding:0;border:0;background:transparent;color:var(--muted);font-size:15px;line-height:1}
+  .empty{
+    border:1px dashed #31473a;border-radius:12px;padding:18px;color:var(--muted);font-size:12px;text-align:center
+  }
+  .results{display:grid;gap:8px;margin-top:12px}
+  .result{
+    border:1px solid #30473a;background:#0d1713;border-radius:12px;padding:12px;position:relative
+  }
+  .result.best{border-color:#779748;background:linear-gradient(180deg,rgba(183,221,88,.07),#0d1713)}
+  .result-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .name{font-weight:800;font-size:13px}
+  .stats{color:var(--accent);font-weight:800;font-size:12px;white-space:nowrap}
+  .steps{margin:8px 0 0;padding-left:18px;color:#d4e0ca;font-size:11px;line-height:1.55}
+  .leftovers{font-size:10px;color:var(--muted);margin-top:8px}
+  .badge{
+    display:inline-block;padding:3px 6px;border:1px solid #4f6448;border-radius:999px;font-size:9px;color:#cdddab;
+    margin-left:5px;vertical-align:1px;text-transform:uppercase;letter-spacing:.04em
+  }
+  .fusion-box{display:grid;grid-template-columns:1fr 34px 1fr;gap:7px;align-items:center}
+  .plus{text-align:center;color:var(--muted)}
+  @media(max-width:540px){.fusion-box{grid-template-columns:1fr}.plus{display:none}}
+  .fusion-answer{margin-top:10px;border-radius:12px;padding:13px;background:#0b1511;border:1px solid #304638}
+  .align-row{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;margin:12px 0}
+  .align{
+    padding:7px 9px;border-radius:9px;background:#0c1512;border:1px solid #304638;font-size:11px
+  }
+  .arrow{color:var(--accent);font-weight:800}
+  .legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  @media(max-width:540px){.legend{grid-template-columns:1fr}}
+  .alignment-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:#0c1512}
+  .alignment-card b{font-size:12px}.alignment-card div{font-size:10px;color:var(--muted);margin-top:3px}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:11px;min-width:650px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #22342a}
+  th{position:sticky;top:0;background:#15231d;color:#cfe29e;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+  tr:last-child td{border-bottom:0}
+  tr:hover td{background:rgba(183,221,88,.03)}
+  .addcard{padding:4px 7px;font-size:10px}
+  .scope{
+    border-left:3px solid var(--warn);background:rgba(231,207,107,.06);padding:10px 12px;border-radius:5px;
+    color:#ded6ad;font-size:10px;line-height:1.5;margin-top:12px
+  }
+  details{border:1px solid var(--line);border-radius:12px;background:#0d1612;padding:11px 12px;margin-top:10px}
+  summary{cursor:pointer;font-size:11px;color:#dce8cf}
+  .tiny{font-size:9px;color:var(--muted);line-height:1.55;margin-top:8px}
+  footer{font-size:9px;color:#778b7c;text-align:center;margin-top:20px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Yu-Gi-Oh! Dark Duel Stories · GBC</div>
+    <h1>DDS Fusion Lab</h1>
+    <p class="sub">Starter Deck Edition. Pick the cards in your hand and the solver recursively searches the verified fusion routes in this database, including multi-step chains.</p>
+  </header>
+
+  <nav class="nav">
+    <a href="#solver">Hand solver</a>
+    <a href="#lookup">Quick fusion</a>
+    <a href="#alignments">Type advantage</a>
+    <a href="#deck">Starter deck</a>
+    <a href="#about">Data scope</a>
+  </nav>
+
+  <div class="grid">
+    <main>
+      <section class="card" id="solver">
+        <h2>Hand Solver</h2>
+        <p class="hint">Add up to 8 cards. Results are ranked by the ATK of the strongest monster produced. The solver can use intermediate fusion monsters in later steps.</p>
+        <div class="controls">
+          <div class="autocomplete-wrap grow">
+            <input id="cardInput" placeholder="Tap to browse cards or type to search" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button type="button" class="autocomplete-toggle" id="autocompleteToggle" aria-label="Browse cards">⌄</button>
+            <div id="autocompleteList" class="autocomplete-list" hidden></div>
+            <button type="button" class="mobile-card-picker-button" id="openMobilePicker">Search or browse cards ＋</button>
+          </div>
+          <button class="primary" id="addBtn">Add card</button>
+        </div>
+        <div class="chips" id="handChips"></div>
+        <div class="controls">
+          <button id="exampleBtn" class="small">Load 2800 ATK example</button>
+          <button id="clearBtn" class="small ghost">Clear</button>
+        </div>
+        <div id="solverResults" class="results"></div>
+      </section>
+
+      <section class="card" id="lookup">
+        <h2>Quick Fusion</h2>
+        <p class="hint">Check whether a pair is present in this Starter Deck Edition database.</p>
+        <div class="fusion-box">
+          <select id="fusionA"></select>
+          <div class="plus">+</div>
+          <select id="fusionB"></select>
+        </div>
+        <div id="fusionAnswer" class="fusion-answer"></div>
+      </section>
+
+      <section class="card" id="deck">
+        <h2>Starting Deck — 40 cards</h2>
+        <p class="hint">Tap + to throw a card directly into the hand solver. ATK / DEF and alignments are DDS values.</p>
+        <div class="controls" style="margin-bottom:10px">
+          <input id="deckSearch" class="grow" placeholder="Filter starter cards">
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Card</th><th>Qty</th><th>ATK</th><th>DEF</th><th>Alignment</th><th></th></tr></thead>
+            <tbody id="deckBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <aside>
+      <section class="card" id="alignments">
+        <h2>Type Advantage</h2>
+        <p class="hint">Arrow means “instantly defeats.” Alignment advantage overrides raw battle stats in DDS.</p>
+        <div class="align-row">
+          <span class="align">🔥 Fire</span><span class="arrow">→</span>
+          <span class="align">🌲 Forest</span><span class="arrow">→</span>
+          <span class="align">💨 Wind</span><span class="arrow">→</span>
+          <span class="align">🪨 Earth</span><span class="arrow">→</span>
+          <span class="align">⚡ Thunder</span><span class="arrow">→</span>
+          <span class="align">💧 Aqua</span><span class="arrow">→</span>
+          <span class="align">🔥 Fire</span>
+        </div>
+        <div class="align-row">
+          <span class="align">🌑 Shadow</span><span class="arrow">→</span>
+          <span class="align">✨ Light</span><span class="arrow">→</span>
+          <span class="align">😈 Fiend</span><span class="arrow">→</span>
+          <span class="align">💭 Dreams</span><span class="arrow">→</span>
+          <span class="align">🌑 Shadow</span>
+        </div>
+        <div class="legend">
+          <div class="alignment-card"><b>Divine</b><div>No alignment advantage or weakness.</div></div>
+          <div class="alignment-card"><b>Separate rings</b><div>The six-element ring does not interact with the four-element ring.</div></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Card Inspector</h2>
+        <p class="hint">Starter cards and common early fusion results.</p>
+        <select id="inspectSelect" style="width:100%"></select>
+        <div id="inspectResult" class="fusion-answer"></div>
+      </section>
+
+      <section class="card" id="about">
+        <h2>Data Scope</h2>
+        <div class="scope">
+          <b>Starter Deck Edition:</b> this is intentionally not advertised as the complete 28,314-fusion database. It contains the full 40-card starter deck plus verified high-value starter/early fusion routes and several derived chains.
+        </div>
+        <details>
+          <summary>What the solver currently knows</summary>
+          <div class="tiny" id="coverageText"></div>
+        </details>
+        <details>
+          <summary>Source notes</summary>
+          <div class="tiny">
+            Starter deck: Yu-Gi-Oh! Wiki starter-deck listing, cross-checked against old GameFAQs deck data.<br><br>
+            Fusion recipes: Mantidactyle's complete DDS Fusion Guide plus older DDS walkthroughs for starter-focused recipes.<br><br>
+            Alignment ring: GameFAQs DDS walkthrough data (“elements are the two rings of power”).<br><br>
+            This file works offline; external source links below are optional.
+            <br><br>
+            <a href="https://gamefaqs.gamespot.com/gbc/528161-yu-gi-oh-dark-duel-stories/faqs/74320" target="_blank" rel="noopener">Complete Fusion Guide</a><br>
+            <a href="https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_Dark_Duel_Stories:_Starter_Deck" target="_blank" rel="noopener">Starter Deck listing</a>
+          </div>
+        </details>
+      </section>
+    </aside>
+  </div>
+
+  <footer>DDS Fusion Lab · single-file offline companion · no network required after saving/opening this file</footer>
+</div>
+
+<div class="mobile-picker" id="mobilePicker" hidden role="dialog" aria-modal="true" aria-labelledby="mobilePickerTitle">
+  <div class="mobile-picker-panel">
+    <div class="mobile-picker-head">
+      <h2 id="mobilePickerTitle">Add a card</h2>
+      <button type="button" id="closeMobilePicker" aria-label="Close card search">Done</button>
+    </div>
+    <input class="mobile-picker-search" id="mobileCardSearch" type="search" placeholder="Search card names" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search card names">
+    <div class="tiny">Tap a card to add it to your hand.</div>
+    <div class="mobile-picker-results" id="mobilePickerResults"></div>
+  </div>
+</div>
+
+<script>
+const starterDeck = [
+  {name:"Sinister Serpent",qty:3,atk:300,def:250,alignment:"Aqua",type:"Reptile"},
+  {name:"Milus Radiant",qty:1,atk:300,def:250,alignment:"Forest",type:"Beast"},
+  {name:"Zone Eater",qty:1,atk:250,def:200,alignment:"Aqua",type:"Aqua"},
+  {name:"Swordsman from a Foreign Land",qty:1,atk:250,def:250,alignment:"Earth",type:"Warrior"},
+  {name:"Fungi of the Musk",qty:1,atk:400,def:300,alignment:"Forest",type:"Fiend"},
+  {name:"Shadow Specter",qty:3,atk:500,def:200,alignment:"Fiend",type:"Zombie"},
+  {name:"Bone Mouse",qty:1,atk:400,def:300,alignment:"Fiend",type:"Zombie"},
+  {name:"Kaminarikozou",qty:1,atk:700,def:600,alignment:"Thunder",type:"Thunder"},
+  {name:"White Dolphin",qty:1,atk:500,def:400,alignment:"Aqua",type:"Fish"},
+  {name:"Wretched Ghost of the Attic",qty:2,atk:550,def:400,alignment:"Shadow",type:"Fiend"},
+  {name:"Turu-Purun",qty:2,atk:450,def:500,alignment:"Aqua",type:"Aqua"},
+  {name:"Jinzo #7",qty:1,atk:500,def:400,alignment:"Fiend",type:"Machine"},
+  {name:"Muka Muka",qty:1,atk:600,def:300,alignment:"Earth",type:"Rock"},
+  {name:"Mech Mole Zombie",qty:1,atk:500,def:400,alignment:"Fiend",type:"Zombie"},
+  {name:"Mechanical Spider",qty:1,atk:400,def:500,alignment:"Forest",type:"Machine"},
+  {name:"Boo Koo",qty:1,atk:650,def:500,alignment:"Light",type:"Spellcaster"},
+  {name:"Star Boy",qty:1,atk:550,def:500,alignment:"Aqua",type:"Aqua"},
+  {name:"Abyss Flower",qty:1,atk:750,def:400,alignment:"Forest",type:"Plant"},
+  {name:"Mystery Hand",qty:3,atk:500,def:500,alignment:"Fiend",type:"Fiend"},
+  {name:"Hiro's Shadow Scout",qty:2,atk:650,def:500,alignment:"Fiend",type:"Fiend"},
+  {name:"Air Marmot of Nefariousness",qty:1,atk:400,def:600,alignment:"Fiend",type:"Beast"},
+  {name:"Droll Bird",qty:1,atk:600,def:500,alignment:"Wind",type:"Winged Beast"},
+  {name:"Yamatano Dragon Scroll",qty:1,atk:900,def:300,alignment:"Wind",type:"Dragon"},
+  {name:"Bladefly",qty:1,atk:600,def:700,alignment:"Forest",type:"Insect"},
+  {name:"Frog the Jam",qty:1,atk:700,def:500,alignment:"Aqua",type:"Aqua"},
+  {name:"Gale Dogra",qty:1,atk:650,def:600,alignment:"Forest",type:"Insect"},
+  {name:"Masked Clown",qty:1,atk:500,def:700,alignment:"Shadow",type:"Warrior"},
+  {name:"Cyber-Stein",qty:1,atk:700,def:500,alignment:"Fiend",type:"Machine"},
+  {name:"Leghul",qty:2,atk:300,def:350,alignment:"Forest",type:"Insect"},
+  {name:"Monster Eye",qty:1,atk:250,def:350,alignment:"Fiend",type:"Fiend"}
+];
+
+const derived = [
+  {name:"Twin-Headed Thunder Dragon",atk:2800,def:2100,alignment:"Thunder",type:"Thunder"},
+  {name:"B. Dragon Jungle",atk:2100,def:1800,alignment:"Forest",type:"Dragon"},
+  {name:"Stone D.",atk:2000,def:2300,alignment:"Earth",type:"Dragon"},
+  {name:"Metal Dragon",atk:1850,def:1700,alignment:"Earth",type:"Machine/Dragon"},
+  {name:"Flower Wolf",atk:1800,def:1400,alignment:"Forest",type:"Beast"},
+  {name:"Thunder Dragon",atk:1600,def:1500,alignment:"Thunder",type:"Thunder/Dragon"},
+  {name:"Spike Seadra",atk:1600,def:1300,alignment:"Aqua",type:"Sea Serpent"},
+  {name:"Cyber Soldier",atk:1500,def:1700,alignment:null,type:"Machine"},
+  {name:"Koumori Dragon",atk:1500,def:1200,alignment:"Fiend",type:"Dragon"},
+  {name:"Blackland Fire Dragon",atk:1500,def:800,alignment:"Shadow",type:"Dragon"},
+  {name:"Bean Soldier",atk:1400,def:1300,alignment:null,type:"Plant/Warrior"},
+  {name:"Bolt Escargot",atk:1400,def:1500,alignment:"Thunder",type:"Thunder"},
+  {name:"Misairuzame",atk:1400,def:1600,alignment:"Aqua",type:"Fish"},
+  {name:"Tatsunootoshigo",atk:1350,def:1600,alignment:"Aqua",type:"Beast"},
+  {name:"Tiger Axe",atk:1300,def:1100,alignment:null,type:"Beast-Warrior"},
+  {name:"Magical Ghost",atk:1300,def:1400,alignment:null,type:"Zombie"},
+  {name:"Darkworld Thorns",atk:1200,def:900,alignment:"Forest",type:"Plant"},
+  {name:"Zombie Warrior",atk:1200,def:900,alignment:null,type:"Zombie"},
+  {name:"Giga-tech Wolf",atk:1200,def:1400,alignment:null,type:"Machine"},
+  {name:"Dragon Statue",atk:1100,def:900,alignment:null,type:"Warrior"},
+  {name:"Corroding Shark",atk:1100,def:700,alignment:"Aqua",type:"Zombie/Fish"},
+  {name:"Wood Remains",atk:1000,def:900,alignment:"Forest",type:"Zombie"},
+  {name:"Snakeyashi",atk:1000,def:1200,alignment:"Forest",type:"Plant"},
+  {name:"Cockroach Knight",atk:800,def:900,alignment:null,type:"Warrior"}
+];
+
+const cardMap = new Map([...starterDeck,...derived].map(c=>[c.name,c]));
+const recipes = [];
+const R=(a,b,result)=>recipes.push({a,b,result});
+
+// Yamatano starter routes
+R("Yamatano Dragon Scroll","Muka Muka","Stone D.");
+R("Yamatano Dragon Scroll","Abyss Flower","B. Dragon Jungle");
+R("Yamatano Dragon Scroll","Mechanical Spider","Metal Dragon");
+R("Yamatano Dragon Scroll","Kaminarikozou","Thunder Dragon");
+R("Yamatano Dragon Scroll","Turu-Purun","Spike Seadra");
+R("Yamatano Dragon Scroll","Star Boy","Spike Seadra");
+R("Yamatano Dragon Scroll","Frog the Jam","Spike Seadra");
+R("Yamatano Dragon Scroll","Mech Mole Zombie","Koumori Dragon");
+R("Yamatano Dragon Scroll","Jinzo #7","Koumori Dragon");
+R("Yamatano Dragon Scroll","Monster Eye","Koumori Dragon");
+R("Yamatano Dragon Scroll","Mystery Hand","Koumori Dragon");
+R("Yamatano Dragon Scroll","Hiro's Shadow Scout","Koumori Dragon");
+R("Yamatano Dragon Scroll","Shadow Specter","Koumori Dragon");
+R("Yamatano Dragon Scroll","Air Marmot of Nefariousness","Koumori Dragon");
+R("Yamatano Dragon Scroll","Cyber-Stein","Koumori Dragon");
+R("Yamatano Dragon Scroll","Wretched Ghost of the Attic","Blackland Fire Dragon");
+R("Yamatano Dragon Scroll","Masked Clown","Dragon Statue");
+R("Yamatano Dragon Scroll","Swordsman from a Foreign Land","Dragon Statue");
+R("Yamatano Dragon Scroll","Boo Koo","Lord of D.");
+
+// starter-to-starter routes
+R("Abyss Flower","Air Marmot of Nefariousness","Flower Wolf");
+R("Abyss Flower","Masked Clown","Bean Soldier");
+R("Abyss Flower","Sinister Serpent","Snakeyashi");
+R("Abyss Flower","Shadow Specter","Wood Remains");
+R("Fungi of the Musk","Mystery Hand","Darkworld Thorns");
+R("Fungi of the Musk","Monster Eye","Darkworld Thorns");
+R("Fungi of the Musk","Hiro's Shadow Scout","Darkworld Thorns");
+R("Jinzo #7","Masked Clown","Cyber Soldier");
+R("Jinzo #7","Swordsman from a Foreign Land","Cyber Soldier");
+R("Jinzo #7","White Dolphin","Misairuzame");
+R("Jinzo #7","Milus Radiant","Giga-tech Wolf");
+R("White Dolphin","Mechanical Spider","Misairuzame");
+R("White Dolphin","Mech Mole Zombie","Corroding Shark");
+R("White Dolphin","Shadow Specter","Corroding Shark");
+R("White Dolphin","Milus Radiant","Tatsunootoshigo");
+R("Masked Clown","Mech Mole Zombie","Zombie Warrior");
+R("Masked Clown","Shadow Specter","Zombie Warrior");
+R("Masked Clown","Bladefly","Cockroach Knight");
+R("Masked Clown","Air Marmot of Nefariousness","Tiger Axe");
+R("Masked Clown","Milus Radiant","Tiger Axe");
+R("Swordsman from a Foreign Land","Shadow Specter","Zombie Warrior");
+R("Swordsman from a Foreign Land","Mechanical Spider","Cyber Soldier");
+R("Swordsman from a Foreign Land","Bladefly","Cockroach Knight");
+R("Swordsman from a Foreign Land","Leghul","Cockroach Knight");
+R("Swordsman from a Foreign Land","Air Marmot of Nefariousness","Tiger Axe");
+R("Kaminarikozou","Frog the Jam","Bolt Escargot");
+R("Kaminarikozou","Turu-Purun","Bolt Escargot");
+R("Kaminarikozou","Star Boy","Bolt Escargot");
+R("Kaminarikozou","Air Marmot of Nefariousness","Tripwire Beast");
+R("Air Marmot of Nefariousness","Mechanical Spider","Giga-tech Wolf");
+R("Air Marmot of Nefariousness","Jinzo #7","Giga-tech Wolf");
+R("Air Marmot of Nefariousness","Cyber-Stein","Giga-tech Wolf");
+R("Boo Koo","Mech Mole Zombie","Magical Ghost");
+
+// high-value derived chains
+R("Stone D.","Kaminarikozou","Twin-Headed Thunder Dragon");
+R("B. Dragon Jungle","Kaminarikozou","Twin-Headed Thunder Dragon");
+R("Metal Dragon","Kaminarikozou","Twin-Headed Thunder Dragon");
+R("Blackland Fire Dragon","Kaminarikozou","Thunder Dragon");
+R("Thunder Dragon","Yamatano Dragon Scroll","Twin-Headed Thunder Dragon");
+
+const extraCards = [
+ {name:"Lord of D.",atk:1200,def:1100,alignment:"Shadow",type:"Spellcaster"},
+ {name:"Tripwire Beast",atk:1200,def:1300,alignment:"Thunder",type:"Thunder"}
+];
+extraCards.forEach(c=>cardMap.set(c.name,c));
+
+function keyPair(a,b){return [a,b].sort().join("|||")}
+const recipeMap = new Map(recipes.map(r=>[keyPair(r.a,r.b),r.result]));
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function card(name){return cardMap.get(name)||{name,atk:0,def:0,alignment:null,type:"Unknown"}}
+function fusion(a,b){return recipeMap.get(keyPair(a,b))||null}
+
+
+let autocompleteIndex = -1;
+
+function normalizeText(v){
+  return v.toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+}
+
+function autocompleteScore(name, query){
+  const n = normalizeText(name);
+  const q = normalizeText(query);
+  if(!q) return 9999;
+  if(n === q) return 0;
+  if(n.startsWith(q)) return 1;
+  const wordStart = n.split(" ").some(w=>w.startsWith(q));
+  if(wordStart) return 2;
+  const idx = n.indexOf(q);
+  if(idx >= 0) return 3 + idx/100;
+
+  // subsequence fallback: "yam dra" can still surface Yamatano Dragon Scroll
+  let ni=0, qi=0;
+  while(ni<n.length && qi<q.length){
+    if(n[ni]===q[qi]) qi++;
+    ni++;
+  }
+  return qi===q.length ? 10 + (n.length-q.length)/100 : Infinity;
+}
+
+function highlightMatch(name, query){
+  const q = query.trim();
+  if(!q) return esc(name);
+  const lower = name.toLowerCase();
+  const idx = lower.indexOf(q.toLowerCase());
+  if(idx < 0) return esc(name);
+  return esc(name.slice(0,idx)) + "<mark>" + esc(name.slice(idx,idx+q.length)) + "</mark>" + esc(name.slice(idx+q.length));
+}
+
+function closeAutocomplete(){
+  const list = document.getElementById("autocompleteList");
+  list.hidden = true;
+  list.innerHTML = "";
+  autocompleteIndex = -1;
+}
+
+function chooseAutocomplete(name){
+  const input = document.getElementById("cardInput");
+  input.value = name;
+  closeAutocomplete();
+  input.focus();
+}
+
+function renderAutocomplete(){
+  const input = document.getElementById("cardInput");
+  const list = document.getElementById("autocompleteList");
+  const query = input.value.trim();
+
+  const matches = [...cardMap.keys()]
+    .map(name=>({name,score:query ? autocompleteScore(name,query) : 0}))
+    .filter(x=>Number.isFinite(x.score))
+    .sort((a,b)=>a.score-b.score || a.name.localeCompare(b.name))
+    .slice(0,12);
+
+  if(!matches.length){
+    closeAutocomplete();
+    return;
+  }
+
+  autocompleteIndex = Math.min(autocompleteIndex, matches.length-1);
+  list.innerHTML = matches.map((m,i)=>{
+    const c = card(m.name);
+    return `<button type="button" class="autocomplete-item ${i===autocompleteIndex?"active":""}" data-name="${esc(m.name)}">
+      <span>${highlightMatch(m.name,query)}</span>
+      <span class="meta">${c.atk||"?"}/${c.def||"?"}</span>
+    </button>`;
+  }).join("");
+  list.hidden = false;
+
+  [...list.querySelectorAll(".autocomplete-item")].forEach(btn=>{
+    btn.addEventListener("pointerdown", e=>{
+      e.preventDefault();
+      chooseAutocomplete(btn.dataset.name);
+    });
+    btn.addEventListener("click", ()=>chooseAutocomplete(btn.dataset.name));
+  });
+}
+
+function moveAutocomplete(delta){
+  const list = document.getElementById("autocompleteList");
+  const items = [...list.querySelectorAll(".autocomplete-item")];
+  if(list.hidden || !items.length) return false;
+  autocompleteIndex = (autocompleteIndex + delta + items.length) % items.length;
+  items.forEach((el,i)=>el.classList.toggle("active",i===autocompleteIndex));
+  items[autocompleteIndex].scrollIntoView({block:"nearest"});
+  return true;
+}
+
+const mobilePicker=document.getElementById("mobilePicker");
+const mobileCardSearch=document.getElementById("mobileCardSearch");
+
+function renderMobilePicker(){
+  const query=mobileCardSearch.value.trim();
+  const matches=[...cardMap.keys()]
+    .map(name=>({name,score:query ? autocompleteScore(name,query) : 0}))
+    .filter(x=>Number.isFinite(x.score))
+    .sort((a,b)=>a.score-b.score || a.name.localeCompare(b.name))
+    .slice(0,query ? 30 : 150);
+  document.getElementById("mobilePickerResults").innerHTML=matches.length
+    ? matches.map(m=>{
+        const c=card(m.name);
+        return `<button type="button" class="autocomplete-item" data-name="${esc(m.name)}"><span>${highlightMatch(m.name,query)}</span><span class="meta">${c.atk||"?"}/${c.def||"?"}</span></button>`;
+      }).join("")
+    : `<div class="empty">No matching cards in this edition.</div>`;
+}
+
+function closeMobilePicker(){
+  mobilePicker.hidden=true;
+  mobileCardSearch.blur();
+  document.body.style.overflow="";
+}
+
+document.getElementById("openMobilePicker").addEventListener("click",()=>{
+  mobileCardSearch.value="";
+  renderMobilePicker();
+  mobilePicker.hidden=false;
+  document.body.style.overflow="hidden";
+  mobileCardSearch.focus();
+});
+document.getElementById("closeMobilePicker").addEventListener("click",closeMobilePicker);
+mobilePicker.addEventListener("click",e=>{if(e.target===mobilePicker)closeMobilePicker()});
+mobileCardSearch.addEventListener("input",renderMobilePicker);
+document.getElementById("mobilePickerResults").addEventListener("click",e=>{
+  const option=e.target.closest(".autocomplete-item");
+  if(!option)return;
+  addToHand(option.dataset.name);
+  closeMobilePicker();
+});
+
+let hand=[];
+
+function populate(){
+  const allNames=[...cardMap.keys()].sort((a,b)=>a.localeCompare(b));
+  const selects=["fusionA","fusionB","inspectSelect"];
+  selects.forEach(id=>{
+    document.getElementById(id).innerHTML=allNames.map(n=>`<option>${esc(n)}</option>`).join("");
+  });
+  document.getElementById("fusionA").value="Yamatano Dragon Scroll";
+  document.getElementById("fusionB").value="Muka Muka";
+  document.getElementById("inspectSelect").value="Yamatano Dragon Scroll";
+  document.getElementById("coverageText").textContent =
+    `${starterDeck.reduce((s,c)=>s+c.qty,0)} starter cards (${starterDeck.length} distinct) · ${recipes.length} verified pair recipes · ${derived.length+extraCards.length} common derived/result cards.`;
+  renderDeck();
+  renderHand();
+  updateQuickFusion();
+  updateInspector();
+}
+
+function addToHand(name){
+  if(!cardMap.has(name)) return;
+  if(hand.length>=8){alert("Hand solver is capped at 8 cards to keep recursive search instant.");return;}
+  hand.push(name); renderHand();
+}
+
+function renderHand(){
+  const chips=document.getElementById("handChips");
+  chips.innerHTML=hand.length?hand.map((n,i)=>`<span class="chip">${esc(n)} <button aria-label="Remove" onclick="removeHand(${i})">×</button></span>`).join(""):`<div class="empty" style="width:100%">Add cards above — try the 2800 ATK example if you want to see the recursive solver work.</div>`;
+  solveHand();
+}
+window.removeHand=(i)=>{hand.splice(i,1);renderHand()}
+
+function solveHand(){
+  const root=document.getElementById("solverResults");
+  if(hand.length<2){root.innerHTML="";return;}
+
+  const found=[];
+  const visited=new Set();
+
+  function dfs(items,steps){
+    const state=items.slice().sort().join("~~");
+    const visitKey=state+"::"+steps.length;
+    if(visited.has(visitKey) && steps.length>0) return;
+    visited.add(visitKey);
+
+    for(let i=0;i<items.length;i++){
+      for(let j=i+1;j<items.length;j++){
+        const result=fusion(items[i],items[j]);
+        if(!result) continue;
+        const next=items.filter((_,k)=>k!==i&&k!==j);
+        next.push(result);
+        const nextSteps=[...steps,{a:items[i],b:items[j],result}];
+        const c=card(result);
+        found.push({
+          result, atk:c.atk||0, def:c.def||0,
+          steps:nextSteps, leftovers:next.filter((_,idx)=>idx!==next.length-1),
+          consumed:nextSteps.length+1
+        });
+        dfs(next,nextSteps);
+      }
+    }
+  }
+  dfs([...hand],[]);
+
+  const unique=new Map();
+  for(const f of found){
+    const path=f.steps.map(s=>keyPair(s.a,s.b)+"=>"+s.result).join(" / ");
+    if(!unique.has(path)) unique.set(path,f);
+  }
+  const arr=[...unique.values()].sort((x,y)=>
+    (y.atk-x.atk) || (y.steps.length-x.steps.length) || (y.def-x.def)
+  );
+
+  if(!arr.length){
+    root.innerHTML=`<div class="empty">No verified fusion route in the current Starter Deck Edition database for this hand.</div>`;
+    return;
+  }
+
+  root.innerHTML=arr.slice(0,18).map((r,idx)=>{
+    const c=card(r.result);
+    const steps=r.steps.map(s=>`<li><b>${esc(s.a)}</b> + <b>${esc(s.b)}</b> → ${esc(s.result)}</li>`).join("");
+    const leftovers=r.leftovers.length?`Remaining: ${r.leftovers.map(esc).join(", ")}`:"Uses all selected cards in the chain";
+    return `<div class="result ${idx===0?"best":""}">
+      <div class="result-title">
+        <div class="name">${esc(r.result)} ${idx===0?'<span class="badge">top ATK route</span>':""}</div>
+        <div class="stats">${c.atk||"?"} / ${c.def||"?"}</div>
+      </div>
+      <ol class="steps">${steps}</ol>
+      <div class="leftovers">${leftovers}</div>
+    </div>`;
+  }).join("");
+}
+
+function updateQuickFusion(){
+  const a=document.getElementById("fusionA").value;
+  const b=document.getElementById("fusionB").value;
+  const result=fusion(a,b);
+  const out=document.getElementById("fusionAnswer");
+  if(result){
+    const c=card(result);
+    out.innerHTML=`<div class="name">${esc(result)}</div><div class="stats" style="margin-top:5px">${c.atk||"?"} ATK / ${c.def||"?"} DEF</div><div class="tiny">${esc(a)} + ${esc(b)}</div>`;
+  }else{
+    out.innerHTML=`<div class="name" style="color:var(--muted)">No recipe in this database</div><div class="tiny">That does not prove the pair is impossible in the full game; v1 deliberately contains only the starter-focused verified set.</div>`;
+  }
+}
+
+function updateInspector(){
+  const name=document.getElementById("inspectSelect").value;
+  const c=card(name);
+  const beats={
+    Fire:"Forest",Forest:"Wind",Wind:"Earth",Earth:"Thunder",Thunder:"Aqua",Aqua:"Fire",
+    Shadow:"Light",Light:"Fiend",Fiend:"Dreams",Dreams:"Shadow"
+  };
+  const loses={}; Object.entries(beats).forEach(([a,b])=>loses[b]=a);
+  const alignment=c.alignment||"Unknown";
+  document.getElementById("inspectResult").innerHTML=`
+    <div class="name">${esc(name)}</div>
+    <div class="stats" style="margin-top:5px">${c.atk||"?"} ATK / ${c.def||"?"} DEF</div>
+    <div class="tiny">Type: ${esc(c.type||"Unknown")} · Alignment: <b>${esc(alignment)}</b></div>
+    ${beats[alignment]?`<div class="tiny">Beats: <b>${beats[alignment]}</b> · Loses to: <b>${loses[alignment]}</b></div>`:""}
+  `;
+}
+
+function renderDeck(){
+  const q=(document.getElementById("deckSearch")?.value||"").toLowerCase().trim();
+  const rows=starterDeck.filter(c=>c.name.toLowerCase().includes(q));
+  document.getElementById("deckBody").innerHTML=rows.map(c=>`
+    <tr>
+      <td><b>${esc(c.name)}</b><div class="tiny">${esc(c.type)}</div></td>
+      <td>×${c.qty}</td><td>${c.atk}</td><td>${c.def}</td><td>${esc(c.alignment)}</td>
+      <td><button class="addcard" onclick="addStarter(decodeURIComponent('${encodeURIComponent(c.name)}'))">+</button></td>
+    </tr>`).join("");
+}
+window.addStarter=(name)=>{addToHand(name);location.hash="#solver"}
+
+document.getElementById("addBtn").addEventListener("click",()=>{
+  const input=document.getElementById("cardInput");
+  const raw=input.value.trim();
+  const name=[...cardMap.keys()].find(n=>n.toLowerCase()===raw.toLowerCase()) || raw;
+  if(!cardMap.has(name)){alert("Choose a card from the suggestions.");return;}
+  addToHand(name); input.value=""; closeAutocomplete(); input.focus();
+});
+const cardInput = document.getElementById("cardInput");
+cardInput.addEventListener("input",()=>{autocompleteIndex=-1;renderAutocomplete()});
+cardInput.addEventListener("focus",renderAutocomplete);
+document.getElementById("autocompleteToggle").addEventListener("mousedown",e=>e.preventDefault());
+document.getElementById("autocompleteToggle").addEventListener("click",()=>{
+  const list=document.getElementById("autocompleteList");
+  if(list.hidden){
+    cardInput.focus();
+    autocompleteIndex=-1;
+    renderAutocomplete();
+  }else{
+    closeAutocomplete();
+  }
+});
+cardInput.addEventListener("keydown",e=>{
+  if(e.key==="ArrowDown"){e.preventDefault();moveAutocomplete(1);return;}
+  if(e.key==="ArrowUp"){e.preventDefault();moveAutocomplete(-1);return;}
+  if(e.key==="Escape"){closeAutocomplete();return;}
+  if(e.key==="Enter"){
+    const active=document.querySelector(".autocomplete-item.active");
+    if(active){e.preventDefault();chooseAutocomplete(active.dataset.name);return;}
+    e.preventDefault();document.getElementById("addBtn").click();
+  }
+});
+cardInput.addEventListener("blur",()=>setTimeout(closeAutocomplete,100));
+document.getElementById("clearBtn").addEventListener("click",()=>{hand=[];renderHand()});
+document.getElementById("exampleBtn").addEventListener("click",()=>{hand=["Yamatano Dragon Scroll","Muka Muka","Kaminarikozou"];renderHand()});
+document.getElementById("fusionA").addEventListener("change",updateQuickFusion);
+document.getElementById("fusionB").addEventListener("change",updateQuickFusion);
+document.getElementById("inspectSelect").addEventListener("change",updateInspector);
+document.getElementById("deckSearch").addEventListener("input",renderDeck);
+
+populate();
+</script>
+</body>
+</html>
